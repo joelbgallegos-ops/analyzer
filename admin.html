@@ -1,0 +1,221 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:#0a0e1a;color:#f0f2f7;min-height:100vh;padding:0 0 3rem}
+.header{background:linear-gradient(135deg,#1a2340 0%,#0f1628 100%);border-bottom:1px solid rgba(99,160,255,0.2);padding:1.25rem 1.5rem}
+.header-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-icon{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,#4a90e2,#2563eb);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.brand-icon svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2}
+.brand-name{font-size:15px;font-weight:500;color:#fff}
+.brand-sub{font-size:11px;color:#7a9fd4}
+.refresh-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;font-size:13px;font-weight:500;border:1px solid rgba(74,144,226,.35);border-radius:10px;background:rgba(74,144,226,.1);color:#a8c4e8;cursor:pointer}
+.refresh-btn svg{width:14px;height:14px;stroke:#4a90e2;fill:none;stroke-width:2}
+.refresh-btn:active{transform:scale(.97)}
+.body{padding:1.25rem 1.5rem}
+.section-label{font-size:11px;font-weight:500;color:#4a90e2;text-transform:uppercase;letter-spacing:.08em;margin:1.5rem 0 .75rem;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:rgba(74,144,226,.2)}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.kpi{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px}
+.kpi-lbl{font-size:11px;color:#7a9fd4;margin-bottom:4px;font-weight:500}
+.kpi-val{font-size:24px;font-weight:500;line-height:1}
+.kpi-sub{font-size:11px;color:#506080;margin-top:4px}
+.good{color:#1D9E75}.warn{color:#EF9F27}.neutral{color:#f0f2f7}.blue{color:#4a90e2}
+.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden}
+.chart-wrap{padding:1rem;position:relative;height:220px}
+canvas{width:100%!important}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:520px}
+thead tr{border-bottom:1px solid rgba(255,255,255,.08)}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:500;color:#7a9fd4;text-transform:uppercase;letter-spacing:.05em}
+td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);color:#c8d8ef}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(74,144,226,.05)}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500}
+.badge-strong{background:rgba(29,158,117,.2);color:#5DCAA5}
+.badge-avg{background:rgba(186,117,23,.2);color:#EF9F27}
+.badge-weak{background:rgba(226,75,74,.2);color:#F09595}
+.empty{text-align:center;padding:2.5rem;color:#506080;font-size:14px}
+.spinner-wrap{display:flex;align-items:center;justify-content:center;padding:3rem;gap:10px;color:#506080;font-size:14px}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(74,144,226,.3);border-top-color:#4a90e2;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.last-updated{font-size:11px;color:#34435a;text-align:right;margin-top:.5rem}
+.top-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.stat-row:last-child{border-bottom:none}
+.stat-lbl{color:#7a9fd4}
+.stat-val{font-weight:500;color:#f0f2f7}
+@media(max-width:520px){.top-grid{grid-template-columns:1fr}}
+</style>
+
+<div class="header">
+  <div class="header-row">
+    <div class="brand">
+      <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+      <div>
+        <div class="brand-name">Joel Gallegos Real Estate</div>
+        <div class="brand-sub">Admin analytics dashboard</div>
+      </div>
+    </div>
+    <button class="refresh-btn" onclick="loadAll()">
+      <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      Refresh
+    </button>
+  </div>
+</div>
+
+<div class="body">
+  <div class="section-label">Overview</div>
+  <div class="kpi-grid" id="kpiGrid">
+    <div class="kpi"><div class="kpi-lbl">Total analyses</div><div class="kpi-val neutral" id="k-total"><span class="spinner"></span></div></div>
+    <div class="kpi"><div class="kpi-lbl">Avg cash-on-cash</div><div class="kpi-val good" id="k-coc">—</div><div class="kpi-sub">Benchmark: 8%+</div></div>
+    <div class="kpi"><div class="kpi-lbl">Avg cap rate</div><div class="kpi-val good" id="k-cap">—</div><div class="kpi-sub">Benchmark: 6%+</div></div>
+    <div class="kpi"><div class="kpi-lbl">Avg monthly CF</div><div class="kpi-val blue" id="k-cf">—</div><div class="kpi-sub">After all expenses</div></div>
+    <div class="kpi"><div class="kpi-lbl">Avg property price</div><div class="kpi-val neutral" id="k-price">—</div></div>
+    <div class="kpi"><div class="kpi-lbl">Avg NOI</div><div class="kpi-val neutral" id="k-noi">—</div><div class="kpi-sub">Per year</div></div>
+  </div>
+
+  <div class="section-label">Analyses over time</div>
+  <div class="card"><div class="chart-wrap"><canvas id="timeChart"></canvas></div></div>
+
+  <div class="section-label">Deal quality breakdown</div>
+  <div class="top-grid">
+    <div class="card"><div class="chart-wrap" style="height:200px"><canvas id="cocChart"></canvas></div></div>
+    <div class="card">
+      <div class="stat-row"><span class="stat-lbl">Strong deals (CoC ≥ 8%)</span><span class="stat-val good" id="s-strong">—</span></div>
+      <div class="stat-row"><span class="stat-lbl">Average deals (4–8%)</span><span class="stat-val warn" id="s-avg">—</span></div>
+      <div class="stat-row"><span class="stat-lbl">Weak deals (&lt; 4%)</span><span class="stat-val" style="color:#E24B4A" id="s-weak">—</span></div>
+      <div class="stat-row"><span class="stat-lbl">Avg DSCR</span><span class="stat-val" id="s-dscr">—</span></div>
+      <div class="stat-row"><span class="stat-lbl">Deals DSCR ≥ 1.25x</span><span class="stat-val good" id="s-dscr-ok">—</span></div>
+      <div class="stat-row"><span class="stat-lbl">Highest price analyzed</span><span class="stat-val" id="s-maxprice">—</span></div>
+    </div>
+  </div>
+
+  <div class="section-label">Recent analyses</div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Property</th><th>Price</th><th>CoC</th><th>Cap rate</th><th>Cash flow</th><th>Rating</th></tr></thead>
+        <tbody id="recentTable"><tr><td colspan="7"><div class="spinner-wrap"><span class="spinner"></span> Loading data…</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="last-updated" id="lastUpdated"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const SB_URL='https://oysncxdguubtckzuszgx.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95c25jeGRndXVidGNrenVzemd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NTcwMjcsImV4cCI6MjA5MDAzMzAyN30.w8EGOQkLH54dgdrhB05SDfax3CTUShJ8VwlnBeexg4U';
+const HDR={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+let timeChartInst=null,cocChartInst=null;
+
+function fmt(n){return'$'+Math.round(Math.abs(n)).toLocaleString('en-US')}
+function fmtPct(n){return n.toFixed(2)+'%'}
+function fmtDate(s){return new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+function avg(arr,key){if(!arr.length)return 0;return arr.reduce((s,r)=>s+(+r[key]||0),0)/arr.length}
+
+function badge(coc){
+  if(coc>=8)return'<span class="badge badge-strong">Strong</span>';
+  if(coc>=4)return'<span class="badge badge-avg">Average</span>';
+  return'<span class="badge badge-weak">Weak</span>';
+}
+
+async function loadAll(){
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/analyses?select=*&order=created_at.desc`,{headers:HDR});
+    const data=await res.json();
+    console.log('Supabase response:',res.status, data);
+    if(!Array.isArray(data)){
+      alert('Supabase read error ('+res.status+'):\n'+JSON.stringify(data,null,2));
+      showEmpty();
+      return;
+    }
+    if(data.length===0){
+      alert('Connected! But 0 rows returned.\n\nThis usually means the RLS read policy is missing.\n\nGo to Supabase → SQL Editor and run:\n\ncreate policy "Allow public read"\non analyses for select\nusing (true);');
+      showEmpty();
+      return;
+    }
+    renderKPIs(data);
+    renderTimeChart(data);
+    renderCocChart(data);
+    renderStats(data);
+    renderTable(data);
+    document.getElementById('lastUpdated').textContent='Last updated: '+new Date().toLocaleTimeString();
+  }catch(e){
+    alert('Network error:\n'+e.message);
+    showEmpty();
+  }
+}
+
+function showEmpty(){
+  document.getElementById('k-total').textContent='0';
+  document.getElementById('recentTable').innerHTML='<tr><td colspan="7"><div class="empty">No analyses yet. Run your first deal in the analyzer!</div></td></tr>';
+}
+
+function renderKPIs(data){
+  const n=data.length;
+  document.getElementById('k-total').textContent=n;
+  document.getElementById('k-coc').textContent=n?fmtPct(avg(data,'cash_on_cash')):'—';
+  document.getElementById('k-cap').textContent=n?fmtPct(avg(data,'cap_rate')):'—';
+  document.getElementById('k-cf').textContent=n?fmt(avg(data,'monthly_cf'))+'/mo':'—';
+  document.getElementById('k-price').textContent=n?fmt(avg(data,'price')):'—';
+  document.getElementById('k-noi').textContent=n?fmt(avg(data,'noi'))+'/yr':'—';
+}
+
+function renderTimeChart(data){
+  const counts={};
+  data.forEach(r=>{
+    const d=new Date(r.created_at);
+    const key=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    counts[key]=(counts[key]||0)+1;
+  });
+  const labels=Object.keys(counts).slice(-14);
+  const vals=labels.map(l=>counts[l]);
+  if(timeChartInst)timeChartInst.destroy();
+  timeChartInst=new Chart(document.getElementById('timeChart'),{
+    type:'bar',
+    data:{labels,datasets:[{label:'Analyses',data:vals,backgroundColor:'rgba(74,144,226,.5)',borderColor:'#4a90e2',borderWidth:1,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#506080',font:{size:11}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#506080',font:{size:11},stepSize:1},grid:{color:'rgba(255,255,255,.06)'}}}}
+  });
+}
+
+function renderCocChart(data){
+  const strong=data.filter(r=>r.cash_on_cash>=8).length;
+  const avg2=data.filter(r=>r.cash_on_cash>=4&&r.cash_on_cash<8).length;
+  const weak=data.filter(r=>r.cash_on_cash<4).length;
+  if(cocChartInst)cocChartInst.destroy();
+  cocChartInst=new Chart(document.getElementById('cocChart'),{
+    type:'doughnut',
+    data:{labels:['Strong (8%+)','Average (4–8%)','Weak (<4%)'],datasets:[{data:[strong,avg2,weak],backgroundColor:['rgba(29,158,117,.7)','rgba(186,117,23,.7)','rgba(226,75,74,.7)'],borderColor:['#1D9E75','#BA7517','#E24B4A'],borderWidth:1}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#7a9fd4',font:{size:11},boxWidth:10,padding:12}}}}
+  });
+}
+
+function renderStats(data){
+  const n=data.length;
+  document.getElementById('s-strong').textContent=n?data.filter(r=>r.cash_on_cash>=8).length+' deals':'—';
+  document.getElementById('s-avg').textContent=n?data.filter(r=>r.cash_on_cash>=4&&r.cash_on_cash<8).length+' deals':'—';
+  document.getElementById('s-weak').textContent=n?data.filter(r=>r.cash_on_cash<4).length+' deals':'—';
+  document.getElementById('s-dscr').textContent=n?avg(data,'dscr').toFixed(2)+'x':'—';
+  document.getElementById('s-dscr-ok').textContent=n?data.filter(r=>r.dscr>=1.25).length+' deals':'—';
+  const prices=data.map(r=>+r.price).filter(Boolean);
+  document.getElementById('s-maxprice').textContent=prices.length?fmt(Math.max(...prices)):'—';
+}
+
+function renderTable(data){
+  const tbody=document.getElementById('recentTable');
+  if(!data.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty">No analyses yet. Run your first deal in the analyzer!</div></td></tr>';return;}
+  tbody.innerHTML=data.slice(0,20).map(r=>`
+    <tr>
+      <td>${fmtDate(r.created_at)}</td>
+      <td>${r.address||'<span style="color:#506080">—</span>'}</td>
+      <td>${r.price?fmt(r.price):'—'}</td>
+      <td>${r.cash_on_cash!=null?fmtPct(r.cash_on_cash):'—'}</td>
+      <td>${r.cap_rate!=null?fmtPct(r.cap_rate):'—'}</td>
+      <td>${r.monthly_cf!=null?fmt(r.monthly_cf)+'/mo':'—'}</td>
+      <td>${r.cash_on_cash!=null?badge(r.cash_on_cash):'—'}</td>
+    </tr>`).join('');
+}
+
+loadAll();
+</script>
